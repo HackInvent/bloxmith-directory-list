@@ -1,0 +1,51 @@
+{
+  "kind": "directory_list",
+  "title": "Directory List",
+  "ports": {
+    "inputs": [
+      {
+        "id": 1,
+        "name": "folder",
+        "title": "Folder",
+        "accepts": [
+          "directory/path",
+          "file/path",
+          "message/*",
+          "application/json"
+        ],
+        "multiplicity": "many",
+        "required": false,
+        "execution_requirement": "required_for_execution"
+      }
+    ],
+    "outputs": [
+      {
+        "id": 1,
+        "name": "liste",
+        "title": "Files",
+        "emits": [
+          "application/json",
+          "message/*"
+        ],
+        "multiplicity": "many"
+      }
+    ]
+  },
+  "config": {
+    "folder_path": "",
+    "pattern": "*",
+    "recursive": false
+  },
+  "port_capabilities": {
+    "can_add_inputs": false,
+    "can_add_outputs": false
+  },
+  "runtime": {
+    "initial_state": "waiting",
+    "runtime_executable": true,
+    "active_worker": true,
+    "file_browser": true,
+    "centralized_executor": "generic",
+    "centralized_dependency_mode": "all_inputs"
+  }
+}
