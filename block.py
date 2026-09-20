@@ -197,7 +197,7 @@ class DirectoryListBlock(BlockDefinition):
             for key, value in config.items()
             if str(key) not in hidden_keys
         ]
-        return "\n".join(fields) if fields else '<div class="ports-editor-empty">Aucun attribut technique.</div>'
+        return "\n".join(fields) if fields else '<div class="ports-editor-empty">No technical attribute.</div>'
 
     def preview_received(self, *, node: Any, **runtime_services: Any) -> str:
         """Return a compact preview value for runtime display surfaces.
@@ -209,7 +209,7 @@ class DirectoryListBlock(BlockDefinition):
         config = getattr(node, "config", {}) if isinstance(getattr(node, "config", {}), dict) else {}
         folder = str(config.get("folder_path") or "").strip()
         pattern = self._normalize_pattern(config.get("pattern"))
-        return f"{folder or 'dossier non defini'} ({pattern})"
+        return f"{folder or 'folder not defined'} ({pattern})"
 
     def execute_runtime(self, context: BlockRuntimeContext) -> BlockRuntimeResult:
         """Execute the block through the generic runtime context and return runtime outputs.

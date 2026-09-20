@@ -113,8 +113,8 @@ def assert_directory_list_payload(payload: str, *, expected_names: list[str]) ->
         item = wrapper["item"]
         expect(Path(item["path"]).is_file(), "Chaque item doit contenir un path fichier valide.")
         expect(item["index"] == index, "Chaque item doit exposer son index.")
-        expect(item["extension"] == ".mp3", "Le filtre *.mp3 doit sortir uniquement des MP3.")
-        expect(int(item["size_bytes"]) > 0, "Chaque item doit exposer size_bytes.")
+        expect(item["extension"] == ".mp3", "The *.mp3 filter must output MP3 files only.")
+        expect(int(item["size_bytes"]) > 0, "Every item must expose size_bytes.")
     return parsed
 
 
@@ -129,7 +129,7 @@ def runtime_node_id_for_kind(run: dict[str, Any], kind: str) -> str:
 
 def run_directory_list_case(runtime_mode: str) -> None:
     with isolated_server() as server:
-        # Les surfaces sont des assets de release : le bundled kind n'en sert aucun.
+        # Surfaces are release assets: a bundled kind serves none of them.
         model = install_test_package(server, "directory_list")
         key = quote(release_key(model), safe="")
         served = lambda payload, suffix: next(
@@ -153,14 +153,14 @@ def run_directory_list_case(runtime_mode: str) -> None:
         logs = "\n".join(run.get("logs", []))
         directory_node_id = runtime_node_id_for_kind(run, "directory_list")
         node_logs = "\n".join(run.get("node_logs", {}).get(directory_node_id, []))
-        expect(run.get("status") == "success", f"Le run Directory List {runtime_mode} doit reussir.")
+        expect(run.get("status") == "success", f"The Directory List {runtime_mode} run must succeed.")
         payload = run.get("output_values", {}).get(f"{directory_node_id}:1", {}).get("value") or ""
         assert_directory_list_payload(payload, expected_names=["a.mp3", "b.mp3"])
-        expect("[done] Directory List" in f"{logs}\n{node_logs}", "Directory List doit tracer le nombre de fichiers.")
+        expect("[done] Directory List" in f"{logs}\n{node_logs}", "Directory List must log the file count.")
         if runtime_mode == "zeromq_active":
             expect(
                 run.get("results", {}).get(directory_node_id, {}).get("transport") == "zeromq_active",
-                "directory_list doit etre execute via zeromq_active.",
+                "directory_list must run through zeromq_active.",
             )
 
 
@@ -177,8 +177,8 @@ def test_direct_runtime() -> None:
         )
         expect(result.status == "success", "Directory List direct doit reussir.")
         parsed = assert_directory_list_payload(result.outputs[0].value, expected_names=["a.mp3", "b.mp3", "c.mp3"])
-        expect(parsed[-1]["item"]["relative_path"] == "nested/c.mp3", "Le mode recursif doit conserver le chemin relatif.")
-        expect(result.metadata.get("directory_list", {}).get("file_count") == 3, "Le metadata doit exposer file_count.")
+        expect(parsed[-1]["item"]["relative_path"] == "nested/c.mp3", "Recursive mode must keep the relative path.")
+        expect(result.metadata.get("directory_list", {}).get("file_count") == 3, "The metadata must expose file_count.")
 
 
 def test_inspector_contract() -> None:
@@ -193,13 +193,13 @@ def test_inspector_contract() -> None:
     expect("data-directory-list-recursive" in html, "Le panneau doit exposer le mode recursif.")
     expect("data-block-apply" in html, "Le panneau Directory List doit exposer le bouton Appliquer.")
     assets = rendered.get("assets") or []
-    expect(rendered.get("context", {}).get("inspector_title") == "Directory List", "Le titre inspecteur doit venir du bloc.")
+    expect(rendered.get("context", {}).get("inspector_title") == "Directory List", "The inspector title must come from the block.")
 
     ports_rendered = render_block_inspector_panel("directory_list", {"node": node, "inspector_tab": "ports"})
     ports_html = str(ports_rendered.get("html") or "")
-    expect('data-inspector-panel-tab="ports"' in ports_html, "Le panneau doit exposer l'onglet Ports.")
-    expect("data-add-input-port type=\"button\" disabled" in ports_html, "Directory List ne doit pas permettre d'ajouter un input.")
-    expect("data-add-output-port type=\"button\" disabled" in ports_html, "Directory List ne doit pas permettre d'ajouter une sortie.")
+    expect('data-inspector-panel-tab="ports"' in ports_html, "The panel must expose the Ports tab.")
+    expect("data-add-input-port type=\"button\" disabled" in ports_html, "Directory List must not allow adding an input.")
+    expect("data-add-output-port type=\"button\" disabled" in ports_html, "Directory List must not allow adding an output.")
 
     result = handle_block_ui_action(
         "directory_list",
@@ -214,9 +214,9 @@ def test_inspector_contract() -> None:
         },
     )
     config = result.get("node_patch", {}).get("config", {})
-    expect(config.get("folder_path") == "./media", "Le dossier doit etre conserve.")
-    expect(config.get("pattern") == "*", "Un filtre vide doit retomber sur *.")
-    expect(config.get("recursive") is False, "Le mode recursif doit etre modifiable.")
+    expect(config.get("folder_path") == "./media", "The folder must be kept.")
+    expect(config.get("pattern") == "*", "An empty filter must fall back to *.")
+    expect(config.get("recursive") is False, "Recursive mode must be editable.")
 
     modal = render_block_modal("directory_list", {"node": node, "runtime": {}})
     modal_html = str(modal.get("html") or "")
@@ -239,9 +239,9 @@ def test_inspector_contract() -> None:
         },
     )
     modal_config = modal_result.get("node_patch", {}).get("config", {})
-    expect(modal_config.get("folder_path") == "./modal-media", "Le modal doit persister le dossier.")
-    expect(modal_config.get("pattern") == "*.wav", "Le modal doit persister le filtre.")
-    expect(modal_config.get("recursive") is True, "Le modal doit persister le mode recursif.")
+    expect(modal_config.get("folder_path") == "./modal-media", "The modal must persist the folder.")
+    expect(modal_config.get("pattern") == "*.wav", "The modal must persist the filter.")
+    expect(modal_config.get("recursive") is True, "The modal must persist the recursive mode.")
 
 
 def test_node_card_contract() -> None:
@@ -259,7 +259,7 @@ def test_node_card_contract() -> None:
 
 def test_node_card_endpoint() -> None:
     with isolated_server() as server:
-        # Les surfaces sont des assets de release : le bundled kind n'en sert aucun.
+        # Surfaces are release assets: a bundled kind serves none of them.
         model = install_test_package(server, "directory_list")
         key = quote(release_key(model), safe="")
         served = lambda payload, suffix: next(
@@ -277,11 +277,11 @@ def test_node_card_endpoint() -> None:
 
 def test_introspection() -> None:
     description = describe_block("directory_list")
-    expect(description["title"] == "Directory List", "Le bloc Directory List doit etre decouvert par introspection.")
-    expect(description["default_config"]["pattern"] == "*", "Le filtre par defaut doit etre introspecte.")
-    expect(description["capabilities"]["runtime_executable"], "directory_list doit etre runtime_executable.")
-    expect(description["capabilities"]["active_worker"], "directory_list doit etre active_worker.")
-    expect(description["capabilities"]["file_browser"], "directory_list doit exposer le browse dossier.")
+    expect(description["title"] == "Directory List", "The Directory List block must be discovered by introspection.")
+    expect(description["default_config"]["pattern"] == "*", "The default filter must be introspected.")
+    expect(description["capabilities"]["runtime_executable"], "directory_list must be runtime_executable.")
+    expect(description["capabilities"]["active_worker"], "directory_list must be active_worker.")
+    expect(description["capabilities"]["file_browser"], "directory_list must expose folder browsing.")
 
 
 def main() -> None:
@@ -292,7 +292,7 @@ def main() -> None:
     test_node_card_contract()
     test_node_card_endpoint()
     test_introspection()
-    expect(DirectoryListBlock().kind == "directory_list", "Le bloc Directory List doit exposer son kind.")
+    expect(DirectoryListBlock().kind == "directory_list", "The Directory List block must expose its kind.")
     print("[ok] F5.19_directory_list_block")
 
 

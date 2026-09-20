@@ -7,10 +7,10 @@
 # Created Date: 2026-05-11
 # -----------------------------------------------------------------------------
 
-"""F8.16 - Carte canvas modulaire du bloc Directory List.
+"""F8.16 - Modular canvas card of the Directory List block.
 
-Le test crée un bloc `directory_list` depuis la palette et vérifie que la carte
-visible vient de la surface block-owned `node_card`, pas du fallback Codex.
+The test creates a `directory_list` block from the palette and checks that the
+visible card comes from the block-owned `node_card` surface, not the Codex fallback.
 """
 
 # Test cases:
@@ -27,9 +27,9 @@ def test_directory_list_node_card(page, server, _blocking_errors) -> None:
     node = node_locator(page, node_id)
     page.wait_for_selector(f'.canvas-node[data-node-id="{node_id}"] [data-directory-list-node-card]', timeout=10_000)
 
-    expect(node.locator("[data-directory-list-node-card]").count() == 1, "La carte Directory List doit venir du bloc.")
-    expect(node.locator(".codex-model-badge").count() == 0, "Directory List ne doit pas reprendre les badges Codex.")
-    expect("Directory List" in node.inner_text(), "La carte Directory List doit afficher son titre metier.")
+    expect(node.locator("[data-directory-list-node-card]").count() == 1, "The Directory List card must come from the block.")
+    expect(node.locator(".codex-model-badge").count() == 0, "Directory List must not reuse the Codex badges.")
+    expect("Directory List" in node.inner_text(), "The Directory List card must show its business title.")
 
 
 if __name__ == "__main__":
