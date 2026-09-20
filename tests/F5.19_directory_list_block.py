@@ -105,14 +105,14 @@ def write_fixture_tree(root: Path) -> Path:
 
 def assert_directory_list_payload(payload: str, *, expected_names: list[str]) -> list[dict[str, Any]]:
     parsed = json.loads(payload)
-    expect(isinstance(parsed, list), "Directory List doit emettre une liste JSON.")
+    expect(isinstance(parsed, list), "Directory List must emit a JSON list.")
     names = [wrapper.get("item", {}).get("file_name") for wrapper in parsed]
     expect(names == expected_names, f"Fichiers inattendus: {names}")
     for index, wrapper in enumerate(parsed, start=1):
-        expect(isinstance(wrapper, dict) and "item" in wrapper, "Chaque entree doit etre compatible List: {item: ...}.")
+        expect(isinstance(wrapper, dict) and "item" in wrapper, "Every entry must be List-compatible: {item: ...}.")
         item = wrapper["item"]
-        expect(Path(item["path"]).is_file(), "Chaque item doit contenir un path fichier valide.")
-        expect(item["index"] == index, "Chaque item doit exposer son index.")
+        expect(Path(item["path"]).is_file(), "Every item must contain a valid file path.")
+        expect(item["index"] == index, "Every item must expose its index.")
         expect(item["extension"] == ".mp3", "The *.mp3 filter must output MP3 files only.")
         expect(int(item["size_bytes"]) > 0, "Every item must expose size_bytes.")
     return parsed
@@ -185,13 +185,13 @@ def test_inspector_contract() -> None:
     node = directory_list_node("fixtures/audio", pattern="*.wav", recursive=True)
     rendered = render_block_inspector_panel("directory_list", {"node": node})
     html = str(rendered.get("html") or "")
-    expect("data-directory-list-inspector-root" in html, "Le panneau inspecteur Directory List doit venir du bloc.")
-    expect("data-path-browser" in html, "Le panneau Directory List doit utiliser le path browser commun.")
-    expect('data-path-browser-select-mode="directory"' in html, "Directory List doit sélectionner un dossier.")
-    expect("data-directory-list-folder-path" in html, "Le panneau doit exposer le dossier.")
-    expect("data-directory-list-pattern" in html, "Le panneau doit exposer le filtre.")
-    expect("data-directory-list-recursive" in html, "Le panneau doit exposer le mode recursif.")
-    expect("data-block-apply" in html, "Le panneau Directory List doit exposer le bouton Appliquer.")
+    expect("data-directory-list-inspector-root" in html, "The Directory List inspector panel must come from the block.")
+    expect("data-path-browser" in html, "The Directory List panel must use the shared path browser.")
+    expect('data-path-browser-select-mode="directory"' in html, "Directory List must select a folder.")
+    expect("data-directory-list-folder-path" in html, "The panel must expose the folder.")
+    expect("data-directory-list-pattern" in html, "The panel must expose the filter.")
+    expect("data-directory-list-recursive" in html, "The panel must expose the recursive mode.")
+    expect("data-block-apply" in html, "The Directory List panel must expose the Apply button.")
     assets = rendered.get("assets") or []
     expect(rendered.get("context", {}).get("inspector_title") == "Directory List", "The inspector title must come from the block.")
 
@@ -220,10 +220,10 @@ def test_inspector_contract() -> None:
 
     modal = render_block_modal("directory_list", {"node": node, "runtime": {}})
     modal_html = str(modal.get("html") or "")
-    expect("data-directory-list-modal-root" in modal_html, "Le modal Directory List doit venir du bloc.")
-    expect("data-block-runtime-refresh=\"autonomous\"" in modal_html, "Le modal Directory List doit gérer son refresh runtime.")
-    expect("data-path-browser" in modal_html, "Le modal Directory List doit utiliser le path browser commun.")
-    expect("data-directory-list-apply" in modal_html, "Le modal Directory List doit exposer son action Appliquer.")
+    expect("data-directory-list-modal-root" in modal_html, "The Directory List modal must come from the block.")
+    expect("data-block-runtime-refresh=\"autonomous\"" in modal_html, "The Directory List modal must own its runtime refresh.")
+    expect("data-path-browser" in modal_html, "The Directory List modal must use the shared path browser.")
+    expect("data-directory-list-apply" in modal_html, "The Directory List modal must expose its Apply action.")
     modal_assets = modal.get("assets") or []
 
     modal_result = handle_block_ui_action(
@@ -248,12 +248,12 @@ def test_node_card_contract() -> None:
     node = directory_list_node("fixtures/audio", pattern="*.mp3", recursive=True)
     rendered = render_block_node_card("directory_list", {"node": node})
     html = str(rendered.get("html") or "")
-    expect("data-directory-list-node-card" in html, "La carte Directory List doit venir du bloc.")
-    expect("*.mp3" in html, "La carte Directory List doit exposer le filtre.")
-    expect("recursive" in html, "La carte Directory List doit exposer le mode recursif.")
+    expect("data-directory-list-node-card" in html, "The Directory List card must come from the block.")
+    expect("*.mp3" in html, "The Directory List card must expose the filter.")
+    expect("recursive" in html, "The Directory List card must expose the recursive mode.")
     expect(
         "directory-list-node" in (rendered.get("context", {}).get("node_classes") or []),
-        "La carte doit demander sa classe visuelle de node.",
+        "The card must request its node visual class.",
     )
 
 
@@ -267,8 +267,8 @@ def test_node_card_endpoint() -> None:
         node = directory_list_node("fixtures/audio", pattern="*.wav", recursive=False)
         rendered = surface_payload(server, model, node, "node_card")
         html = str(rendered.get("html") or "")
-        expect("data-directory-list-node-card" in html, "Endpoint node-card doit rendre le HTML Directory List.")
-        expect("*.wav" in html, "Endpoint node-card doit transmettre le filtre.")
+        expect("data-directory-list-node-card" in html, "The node-card endpoint must render the Directory List HTML.")
+        expect("*.wav" in html, "The node-card endpoint must forward the filter.")
         assets = rendered.get("assets") or []
         with urlopen(f"{server.base_url}/api/blocks/{key}/assets/{served(rendered, 'assets/css/node_card.css')}", timeout=5) as response:
             body = response.read().decode("utf-8")
