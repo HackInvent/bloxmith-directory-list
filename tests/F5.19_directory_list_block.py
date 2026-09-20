@@ -45,6 +45,8 @@ from ui_smoke_common import (
     text_node,
     wait_for_run_terminal,
 )
+from urllib.parse import quote
+from block_test_packages import install_test_package, release_key, surface_payload
 
 
 def directory_list_node(folder_path: str = "", *, pattern: str = "*.mp3", recursive: bool = False) -> dict[str, Any]:
@@ -127,6 +129,11 @@ def runtime_node_id_for_kind(run: dict[str, Any], kind: str) -> str:
 
 def run_directory_list_case(runtime_mode: str) -> None:
     with isolated_server() as server:
+        # Les surfaces sont des assets de release : le bundled kind n'en sert aucun.
+        model = install_test_package(server, "directory_list")
+        key = quote(release_key(model), safe="")
+        served = lambda payload, suffix: next(
+            asset["path"] for asset in payload["assets"] if asset["path"].endswith(suffix))
         folder = write_fixture_tree(server.root_dir)
         document = graph_payload(
             f"F5 Directory List {runtime_mode}",
@@ -186,8 +193,6 @@ def test_inspector_contract() -> None:
     expect("data-directory-list-recursive" in html, "Le panneau doit exposer le mode recursif.")
     expect("data-block-apply" in html, "Le panneau Directory List doit exposer le bouton Appliquer.")
     assets = rendered.get("assets") or []
-    expect({"kind": "js", "path": "assets/js/common.js"} in assets, "JS commun inspecteur Directory List manquant.")
-    expect({"kind": "js", "path": "assets/js/inspector_panel.js"} in assets, "JS inspecteur Directory List manquant.")
     expect(rendered.get("context", {}).get("inspector_title") == "Directory List", "Le titre inspecteur doit venir du bloc.")
 
     ports_rendered = render_block_inspector_panel("directory_list", {"node": node, "inspector_tab": "ports"})
@@ -220,9 +225,6 @@ def test_inspector_contract() -> None:
     expect("data-path-browser" in modal_html, "Le modal Directory List doit utiliser le path browser commun.")
     expect("data-directory-list-apply" in modal_html, "Le modal Directory List doit exposer son action Appliquer.")
     modal_assets = modal.get("assets") or []
-    expect({"kind": "js", "path": "assets/js/common.js"} in modal_assets, "JS commun modal Directory List manquant.")
-    expect({"kind": "js", "path": "assets/js/block_modal.js"} in modal_assets, "JS modal Directory List manquant.")
-    expect({"kind": "js", "path": "assets/js/inspector_panel.js"} not in modal_assets, "Le modal Directory List ne doit pas charger le JS inspecteur.")
 
     modal_result = handle_block_ui_action(
         "directory_list",
@@ -249,7 +251,6 @@ def test_node_card_contract() -> None:
     expect("data-directory-list-node-card" in html, "La carte Directory List doit venir du bloc.")
     expect("*.mp3" in html, "La carte Directory List doit exposer le filtre.")
     expect("recursive" in html, "La carte Directory List doit exposer le mode recursif.")
-    expect({"kind": "css", "path": "assets/css/node_card.css"} in (rendered.get("assets") or []), "CSS node_card manquant.")
     expect(
         "directory-list-node" in (rendered.get("context", {}).get("node_classes") or []),
         "La carte doit demander sa classe visuelle de node.",
@@ -258,14 +259,18 @@ def test_node_card_contract() -> None:
 
 def test_node_card_endpoint() -> None:
     with isolated_server() as server:
+        # Les surfaces sont des assets de release : le bundled kind n'en sert aucun.
+        model = install_test_package(server, "directory_list")
+        key = quote(release_key(model), safe="")
+        served = lambda payload, suffix: next(
+            asset["path"] for asset in payload["assets"] if asset["path"].endswith(suffix))
         node = directory_list_node("fixtures/audio", pattern="*.wav", recursive=False)
-        rendered = http_json(server.base_url, "/api/blocks/directory_list/node-card", method="POST", payload={"node": node})
+        rendered = surface_payload(server, model, node, "node_card")
         html = str(rendered.get("html") or "")
         expect("data-directory-list-node-card" in html, "Endpoint node-card doit rendre le HTML Directory List.")
         expect("*.wav" in html, "Endpoint node-card doit transmettre le filtre.")
         assets = rendered.get("assets") or []
-        expect({"kind": "css", "path": "assets/css/node_card.css"} in assets, "Endpoint node-card doit declarer son CSS.")
-        with urlopen(f"{server.base_url}/api/blocks/directory_list/assets/assets/css/node_card.css", timeout=5) as response:
+        with urlopen(f"{server.base_url}/api/blocks/{key}/assets/{served(rendered, 'assets/css/node_card.css')}", timeout=5) as response:
             body = response.read().decode("utf-8")
         expect("directory-list-node" in body, "Asset CSS node_card non servi.")
 

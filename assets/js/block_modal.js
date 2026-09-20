@@ -6,23 +6,17 @@
  * Created Date: 2026-06-10
  */
 
-(function () {
-  "use strict";
+import { mountDirectoryListEditor } from "./common.js";
 
-  const registry = (window.CWBlockUiBlocks = window.CWBlockUiBlocks || {});
-
-  registry.directory_list = {
-    /**
-     * Mount the Directory List modal bindings using the modal update action.
-     *
-     * @param {HTMLElement} root - Mounted Directory List modal root.
-     * @param {object} api - Generic block UI API exposing block actions.
-     * @returns {void}
-     */
-    mount(root, api) {
-      window.CWDirectoryListBlockUi?.mountDirectoryListEditor?.(root, api, {
-        actionName: "modal_update_directory_list",
-      });
-    },
-  };
-})();
+/**
+ * Mount the Directory List modal bindings using the modal update action.
+ *
+ * @param {HTMLElement} root - Mounted Directory List modal root.
+ * @param {object} api - Generic block UI API exposing block actions.
+ * @returns {void}
+ */
+export function mount(root, api) {
+  mountDirectoryListEditor(root, api, {
+    actionName: "modal_update_directory_list",
+  });
+}

@@ -55,26 +55,6 @@ class DirectoryListBlock(BlockDefinition):
     """Autonomous block implementation for `DirectoryListBlock`."""
     kind = "directory_list"
 
-    def ui_assets(self, surface: str = "modal") -> list[dict[str, str]]:
-        """Return block-owned frontend assets for the requested UI surface.
-
-        Args:
-            surface: UI surface requesting assets.
-        """
-        if surface == "modal":
-            return [
-                {"kind": "js", "path": "assets/js/common.js"},
-                {"kind": "js", "path": "assets/js/block_modal.js"},
-            ]
-        if surface == "inspector_panel":
-            return [
-                {"kind": "js", "path": "assets/js/common.js"},
-                {"kind": "js", "path": "assets/js/inspector_panel.js"},
-            ]
-        if surface == "node_card":
-            return [{"kind": "css", "path": "assets/css/node_card.css"}]
-        return []
-
     def render_node_card(self, *, node: dict[str, Any], payload: dict[str, Any] | None = None) -> dict[str, Any]:
         """Render the canvas card body owned by the Directory List block."""
 
