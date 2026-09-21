@@ -62,13 +62,18 @@ class DirectoryListBlock(BlockDefinition):
         title = escape(str(node.get("title") or self.default_title()))
         folder = escape(str(config.get("folder_path") or "folder input"))
         pattern = escape(str(config.get("pattern") or DIRECTORY_LIST_DEFAULT_PATTERN))
-        recursive_label = "recursive" if config.get("recursive") else "direct"
+        # The card states one of two modes, so the marker carries the matching key.
+        recursive_key = ("block.directory_list.card_recursive" if config.get("recursive")
+                         else "block.directory_list.card_direct")
+        recursive_label = self.translate(
+            recursive_key, fallback="recursive" if config.get("recursive") else "direct")
         template = (self.directory / "node_card.html").read_text(encoding="utf-8")
         html = (
             template.replace("__title__", title)
             .replace("__folder__", folder)
             .replace("__pattern__", pattern)
-            .replace("__recursive_label__", recursive_label)
+            .replace("__recursive_label__", escape(recursive_label))
+            .replace("__recursive_key__", recursive_key)
         )
         return {
             "html": html,
@@ -155,7 +160,7 @@ class DirectoryListBlock(BlockDefinition):
                     "recursive": self._bool(values.get("recursive", False)),
                 }
             },
-            "message": f"[directory-list] Filtre applique: {pattern}.",
+            "message": f"[directory-list] Filter applied: {pattern}.",
             "rerender_inspector": False,
         }
 
@@ -177,7 +182,7 @@ class DirectoryListBlock(BlockDefinition):
 
         return render_path_browser_control(
             input_id=input_id,
-            label="Dossier",
+            label="Folder",
             value=str(config.get("folder_path") or ""),
             placeholder="./audio",
             input_attrs="data-directory-list-folder-path",
@@ -236,10 +241,10 @@ class DirectoryListBlock(BlockDefinition):
             self._emit_log(
                 context,
                 logs,
-                f"[directory-list] {context.node_id}: dossier={display_folder} "
-                f"filtre={config['pattern']} recursive={'on' if config['recursive'] else 'off'}.",
+                f"[directory-list] {context.node_id}: folder={display_folder} "
+                f"filter={config['pattern']} recursive={'on' if config['recursive'] else 'off'}.",
             )
-            self._emit_log(context, logs, f"[done] Directory List {context.node_id}: {len(items)} fichier(s).")
+            self._emit_log(context, logs, f"[done] Directory List {context.node_id}: {len(items)} file(s).")
             return BlockRuntimeResult(
                 status="success",
                 outputs=outputs,
@@ -320,13 +325,15 @@ class DirectoryListBlock(BlockDefinition):
         )
         folder_text = self._extract_path_value(raw_value)
         if not folder_text:
-            raise DirectoryListBlockError("Directory List: aucun dossier fourni.")
+            raise DirectoryListBlockError(self.translate("block.directory_list.error_no_folder",
+                fallback="Directory List: no folder provided."))
         folder = Path(folder_text).expanduser()
         if not folder.is_absolute():
             folder = context.root_dir / folder
         folder = folder.resolve()
         if not folder.is_dir():
-            raise DirectoryListBlockError(f"Directory List: dossier introuvable: {folder_text}")
+            raise DirectoryListBlockError(self.translate("block.directory_list.error_folder_missing", {"folder": folder_text},
+                fallback=f"Directory List: folder not found: {folder_text}"))
         return folder
 
     def _extract_path_value(self, raw_value: Any) -> str:

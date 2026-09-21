@@ -1,0 +1,11 @@
+{
+  "block.directory_list.model.title": "Liste de dossier",
+  "block.directory_list.pill": "Liste de dossier",
+  "block.directory_list.filter_label": "Filtre",
+  "block.directory_list.recursive_label": "Chercher dans les sous-dossiers",
+  "block.directory_list.technical_section": "Attributs techniques",
+  "block.directory_list.card_recursive": "récursif",
+  "block.directory_list.card_direct": "direct",
+  "block.directory_list.error_no_folder": "Directory List : aucun dossier fourni.",
+  "block.directory_list.error_folder_missing": "Directory List : dossier introuvable : {folder}"
+}
