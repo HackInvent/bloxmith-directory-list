@@ -39,12 +39,12 @@ export function mountDirectoryListEditor(root, api, { actionName = "inspector_up
     if (!dirty) {
       return;
     }
-    void api.applyAction(actionName, values()).then    dirty = false;
-    if (applyButton) {
-      applyButton.disabled = true;
-    }
-  
-).catch((error) => {
+    void api.applyAction(actionName, values()).then(() => {
+      dirty = false;
+      if (applyButton) {
+        applyButton.disabled = true;
+      }
+    }).catch((error) => {
       api.log?.(`[error] Mise a jour Directory List impossible: ${error.message}`);
     });
   };
